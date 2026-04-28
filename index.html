@@ -6,8 +6,6 @@
 <title>TCAS70 Countdown</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --bg: #f5f4f0;
     --ink: #111110;
@@ -19,6 +17,38 @@
     --warn-light: #fdf0eb;
     --line: #dddcd8;
   }
+  [data-theme="dark"] {
+  --bg: #111110;
+  --ink: #f0efe9;
+  --ink-muted: #9b9a95;
+  --ink-faint: #3a3935;
+  --accent: #4ade80;
+  --accent-light: #0d2b1a;
+  --line: #252523;
+  }
+  [data-theme="dark"] .info-card-header { background: #1a1a18; }
+
+  *, *::before, *::after {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .theme-toggle {
+    position: fixed;
+    top: 20px; right: 20px;
+    z-index: 100;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .theme-toggle:hover { background: var(--ink); color: var(--bg); }
 
   body {
     background: var(--bg);
@@ -458,7 +488,7 @@
 </style>
 </head>
 <body>
-
+<button class="theme-toggle" id="theme-btn" title="เปลี่ยนธีม" onclick="toggleTheme()">🌙</button>
 <header>
   <div class="badge">TCAS70 · ปีการศึกษา 2570</div>
   <h1>Countdown<br><span>รอบนี้ต้องได้</span></h1>
@@ -585,6 +615,26 @@
 </footer>
 
 <script>
+  (function() {
+  const saved = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  document.getElementById('theme-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
+});
 // ── DATA ──────────────────────────────────────────────────────────
 // Thai year 2570 = Christian year 2027; month is 0-indexed
 // พ.ศ. 2569 = ค.ศ. 2026, 2570 = 2027
@@ -700,8 +750,10 @@ renderTimeline('timeline-tcas', 'tcas');
 function getNext() {
   const now = new Date();
   return milestones.find(m => {
-    const ref = m.dateEnd || m.date;
-    return ref >= now;
+    if (m.dateEnd) return m.dateEnd >= now;
+    const end = new Date(m.date);
+    end.setHours(23, 59, 59, 999);
+    return end >= now;
   });
 }
 
@@ -710,6 +762,7 @@ function updateNext() {
   if (!m) {
     document.getElementById('next-name').textContent = 'TCAS70 เสร็จสิ้นแล้ว 🎉';
     document.getElementById('next-date').textContent = '';
+    document.querySelector('.next-countdown').style.display = 'none';
     return;
   }
   document.getElementById('next-name').textContent = m.label;

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCAS70 Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --ink: #111110;
+    --ink-muted: #6b6a66;
+    --ink-faint: #c8c7c2;
+    --accent: #1a5c3a;
+    --accent-light: #e8f2ed;
+    --warn: #b84a1e;
+    --warn-light: #fdf0eb;
+    --line: #dddcd8;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    max-width: 640px;
+    margin: 0 auto 48px;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: clamp(32px, 8vw, 52px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--ink);
+  }
+
+  h1 span {
+    color: var(--ink-muted);
+    font-weight: 300;
+  }
+
+  .subhead {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--ink-muted);
+    font-weight: 300;
+  }
+
+  /* ── HERO COUNTDOWN ── */
+  .hero {
+    max-width: 640px;
+    margin: 0 auto 48px;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 4px;
+    padding: 32px;
+  }
+
+  .hero-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+
+  .hero-event {
+    font-size: 16px;
+    font-weight: 500;
+    color: #e8f2ed;
+    margin-bottom: 28px;
+  }
+
+  .countdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .cd-unit {
+    text-align: center;
+  }
+
+  .cd-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(28px, 8vw, 44px);
+    font-weight: 600;
+    line-height: 1;
+    color: #fff;
+    display: block;
+    letter-spacing: -0.02em;
+  }
+
+  .cd-label {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cd-sep {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 32px;
+    color: #333;
+    padding-top: 0;
+    margin-top: -4px;
+  }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    max-width: 640px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-header h2 {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .section-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    max-width: 640px;
+    margin: 0 auto 48px;
+  }
+
+  .milestone {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 0 20px;
+    position: relative;
+    padding-bottom: 0;
+  }
+
+  .milestone:not(:last-child) .milestone-body {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .milestone-date {
+    padding: 18px 0;
+    text-align: right;
+  }
+
+  .milestone-date .date-main {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .milestone-date .date-sub {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 2px;
+  }
+
+  .milestone-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 22px;
+    position: relative;
+  }
+
+  .milestone-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .milestone.active .milestone-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  .milestone.past .milestone-dot {
+    background: var(--ink-faint);
+  }
+
+  .milestone-line {
+    width: 1px;
+    flex: 1;
+    background: var(--line);
+    margin-top: 4px;
+  }
+
+  .milestone-body {
+    padding: 16px 0 16px 4px;
+  }
+
+  .milestone-round {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+
+  .tag-portfolio { background: #e8f2ed; color: #1a5c3a; }
+  .tag-quota { background: #e8eef8; color: #1a3d6e; }
+  .tag-admission { background: #fef3e8; color: #8a4400; }
+  .tag-direct { background: #f5e8f8; color: #5c1a7a; }
+  .tag-exam { background: #f0f0f0; color: #333; }
+  .tag-alevel { background: #fff0e8; color: #b84a1e; }
+  .tag-tgat   { background: #e8f0fe; color: #1a3dbf; }
+  .tag-tpat   { background: #fce8ff; color: #7a1abf; }
+
+  .milestone-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  .milestone.past .milestone-title {
+    color: var(--ink-muted);
+  }
+
+  .milestone-detail {
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-top: 3px;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    max-width: 640px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tab {
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    background: none;
+    border: none;
+    padding: 10px 16px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.15s;
+  }
+
+  .tab.active {
+    color: var(--ink);
+  }
+
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--ink);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── NEXT UP CARD ── */
+  .next-card {
+    max-width: 640px;
+    margin: 0 auto 32px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .next-card-header {
+    background: var(--accent-light);
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .next-card-body {
+    padding: 16px;
+  }
+
+  .next-event-name {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .next-event-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+
+  .next-countdown {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+  }
+
+  .nc-unit { text-align: center; }
+  .nc-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    display: block;
+  }
+  .nc-label {
+    font-size: 10px;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── INFO CARDS ── */
+  .info-section {
+    max-width: 640px;
+    margin: 0 auto 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-card {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .info-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .info-card-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .info-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .info-card-body {
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink-muted);
+  }
+
+  .info-card-body ul {
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .info-card-body li {
+    color: var(--ink-muted);
+  }
+
+  .info-card-body strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .info-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    max-width: 640px;
+    margin: 48px auto 0;
+    font-size: 12px;
+    color: var(--ink-faint);
+    text-align: center;
+  }
+
+  .divider {
+    max-width: 640px;
+    margin: 0 auto 32px;
+    height: 1px;
+    background: var(--line);
+  }
+
+  @media (max-width: 480px) {
+    .milestone {
+      grid-template-columns: 80px 1fr;
+    }
+    .countdown-grid { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">TCAS70 · ปีการศึกษา 2570</div>
+  <h1>Countdown<br><span>รอบนี้ต้องได้</span></h1>
+  <p class="subhead">ติดตามทุก milestone ของ TCAS ปีการศึกษา 2570</p>
+</header>
+
+<!-- HERO: next upcoming event countdown -->
+<div class="next-card">
+  <div class="next-card-header">⏳ ถัดไป</div>
+  <div class="next-card-body">
+    <div class="next-event-name" id="next-name">—</div>
+    <div class="next-event-date" id="next-date">—</div>
+    <div class="next-countdown">
+      <div class="nc-unit"><span class="nc-num" id="n-days">--</span><span class="nc-label">วัน</span></div>
+      <div class="nc-unit"><span class="nc-num" id="n-hrs">--</span><span class="nc-label">ชั่วโมง</span></div>
+      <div class="nc-unit"><span class="nc-num" id="n-min">--</span><span class="nc-label">นาที</span></div>
+      <div class="nc-unit"><span class="nc-num" id="n-sec">--</span><span class="nc-label">วินาที</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('all', this)">ทั้งหมด</button>
+  <button class="tab" onclick="switchTab('exam', this)">สอบ</button>
+  <button class="tab" onclick="switchTab('tcas', this)">TCAS รอบ</button>
+</div>
+
+<!-- TAB: ALL -->
+<div class="tab-content active" id="tab-all">
+  <div class="timeline" id="timeline-all"></div>
+</div>
+<div class="tab-content" id="tab-exam">
+  <div class="timeline" id="timeline-exam"></div>
+</div>
+<div class="tab-content" id="tab-tcas">
+  <div class="timeline" id="timeline-tcas"></div>
+</div>
+
+
+<!-- INFO CARDS -->
+<div class="section-header" style="max-width:640px;margin:32px auto 16px;">
+  <h2>สิ่งที่ควรรู้</h2>
+</div>
+<div class="info-section">
+
+  <div class="info-card">
+    <div class="info-card-header">
+      <span class="info-card-icon">💰</span>
+      <span class="info-card-title">อัตราค่าสมัครสอบ TCAS70</span>
+      <span class="info-tag tag-exam">ทั่วไป</span>
+    </div>
+    <div class="info-card-body">
+      <ul>
+        <li><strong>TGAT / TPAT 2-5</strong> — วิชาละ 140 บาท (เท่าเดิม)</li>
+        <li><strong>A-Level</strong> — วิชาละ 100 บาท (เท่าเดิม)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-header">
+      <span class="info-card-icon">🎁</span>
+      <span class="info-card-title">สนับสนุนค่าสมัครสอบจาก อว. — ปีนี้ขยายเพิ่ม</span>
+      <span class="info-tag tag-tgat">อว.</span>
+    </div>
+    <div class="info-card-body">
+      <ul>
+        <li>ปีก่อน: ฟรีเฉพาะ <strong>TGAT / TPAT 2-5</strong></li>
+        <li>ปีนี้เพิ่ม: ฟรี <strong>A-Level 7 วิชา</strong> และ <strong>TPAT1 (กสพท.)</strong> ด้วย</li>
+        <li>⚠️ <strong>เงื่อนไข</strong> — วิชานั้นต้องไม่เคยได้รับการสนับสนุนจากปีก่อน ๆ</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-header">
+      <span class="info-card-icon">🎓</span>
+      <span class="info-card-title">ยื่น Admission 7 อันดับ ฟรี จาก อว.</span>
+      <span class="info-tag tag-admission">รอบ 3</span>
+    </div>
+    <div class="info-card-body">
+      <ul>
+        <li>อว. คงนโยบายสนับสนุนค่ายื่น Admission <strong>7 อันดับ ฟรี</strong> เหมือนเดิม</li>
+        <li>⚠️ <strong>เงื่อนไข</strong> — ต้องไม่เคยได้รับการสนับสนุนการยื่นรอบ Admission จาก อว. มาก่อน</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-header">
+      <span class="info-card-icon">💸</span>
+      <span class="info-card-title">ลดค่าสมัครสอบ 25% สำหรับ กสศ.</span>
+      <span class="info-tag tag-exam">ทั่วไป</span>
+    </div>
+    <div class="info-card-body">
+      <ul>
+        <li>นักเรียนในระบบ <strong>กสศ.</strong> (กองทุนเพื่อความเสมอภาคทางการศึกษา) ได้รับส่วนลด <strong>25%</strong> สำหรับค่าสมัครสอบรอบ Portfolio</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-header">
+      <span class="info-card-icon">📁</span>
+      <span class="info-card-title">ความเปลี่ยนแปลงรอบ Portfolio ปี 70</span>
+      <span class="info-tag tag-portfolio">รอบ 1</span>
+    </div>
+    <div class="info-card-body">
+      <ul>
+        <li>มหาวิทยาลัยเริ่มหันมาใช้ <strong>TCASFolio</strong> แทนระบบ Portfolio เดิม — ไม่บังคับ จะใช้แบบไหนหรือคู่ขนานก็ได้</li>
+        <li>มีระบบ <strong>TCAS Verified</strong> รับรองผลข้อมูล กิจกรรม และเกียรติบัตรต่าง ๆ โดยอัตโนมัติ</li>
+        <li>ปรับสัดส่วนรับรอบ Portfolio ให้เหมาะสมมากขึ้น โดยเฉพาะบางสาขา <strong>(เป้าหมาย ≤ 30%)</strong></li>
+        <li>ทบทวนเกณฑ์ที่สร้างภาระ เช่น เกณฑ์ที่ต้องใช้ทุนทรัพย์เพื่อผ่านคุณสมบัติรอบนี้</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  ข้อมูลจาก mytcas.com · อัปเดต ณ 26 เมษายน 2569<br>
+  <span id="clock" style="font-family:'IBM Plex Mono',monospace; margin-top:6px; display:block;"></span>
+</footer>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+// Thai year 2570 = Christian year 2027; month is 0-indexed
+// พ.ศ. 2569 = ค.ศ. 2026, 2570 = 2027
+
+const milestones = [
+  // TGAT/TPAT
+  { date: new Date(2026,  8,  1), dateEnd: new Date(2026,  9, 20), label: 'สมัครสอบ TPAT1 (กสพท.) — TBD', tag: 'tag-tpat', category: 'exam', tagLabel: 'TPAT', detail: 'คาดว่า 1-20 ก.ย. หรือ 1-20 ต.ค. 69 · ยังไม่ยืนยัน' },
+  { date: new Date(2026, 10,  4), dateEnd: new Date(2026, 10, 10), label: 'สมัครสอบ TGAT/TPAT 2-5', tag: 'tag-tgat', category: 'exam', tagLabel: 'TGAT/TPAT', detail: '11-12 พ.ย. 69 รับคำร้องลงทะเบียนล่าช้า' },
+  { date: new Date(2026, 11,  7), dateEnd: new Date(2027,  1,  1), label: 'พิมพ์บัตรที่นั่งสอบ TGAT/TPAT 2-5', tag: 'tag-tgat', category: 'exam', tagLabel: 'TGAT/TPAT' },
+  { date: new Date(2027,  0, 14), dateEnd: new Date(2027,  0, 20), label: 'รับสมัครสอบ A-Level', tag: 'tag-alevel', category: 'exam', tagLabel: 'A-Level', detail: '21-22 ม.ค. 70 รับคำร้องล่าช้า' },  { date: new Date(2027,  0, 30), dateEnd: new Date(2027,  1,  1), label: 'สอบ TGAT/TPAT 2-5', tag: 'tag-tgat', category: 'exam', tagLabel: 'TGAT/TPAT', detail: '30 ม.ค. – 1 ก.พ. 70' },
+  { date: new Date(2027,  1, 13), label: 'สอบ TPAT1 (กสพท)', tag: 'tag-tpat', category: 'exam', tagLabel: 'TPAT' },
+  { date: new Date(2027,  1, 15), dateEnd: new Date(2027,  2, 15), label: 'พิมพ์บัตรที่นั่งสอบ A-Level', tag: 'tag-alevel', category: 'exam', tagLabel: 'A-Level' },
+  { date: new Date(2027,  1, 28), label: 'ประกาศผลสอบ TGAT/TPAT 2-5', tag: 'tag-tgat', category: 'exam', tagLabel: 'TGAT/TPAT' },
+  { date: new Date(2027,  2,  1), dateEnd: new Date(2027,  2,  6), label: 'ขอทบทวนผลคะแนน TGAT/TPAT', tag: 'tag-tgat', category: 'exam', tagLabel: 'TGAT/TPAT' },
+  { date: new Date(2027,  2, 13), dateEnd: new Date(2027,  2, 15), label: 'สอบ A-Level', tag: 'tag-alevel', category: 'exam', tagLabel: 'A-Level', detail: '13-15 มี.ค. 70' },
+  { date: new Date(2027,  2, 26), label: 'ประกาศเฉลยคำตอบ A-Level', tag: 'tag-alevel', category: 'exam', tagLabel: 'A-Level' },
+  // TCAS rounds
+  { date: new Date(2026,  6, 15), label: 'เปิดระบบ TCAS70 & TCASFolio', tag: 'tag-exam', category: 'tcas', tagLabel: 'ระบบ' },
+  { date: new Date(2026,  7, 15), label: 'รับสมัคร Portfolio ที่มหาวิทยาลัย', tag: 'tag-portfolio', category: 'tcas', tagLabel: 'รอบ 1' },
+  { date: new Date(2027,  2, 10), label: 'ประกาศผล รอบ 1 Portfolio', tag: 'tag-portfolio', category: 'tcas', tagLabel: 'รอบ 1' },
+  { date: new Date(2027,  2, 10), dateEnd: new Date(2027,  2, 11), label: 'ยืนยันสิทธิ์ รอบ 1', tag: 'tag-portfolio', category: 'tcas', tagLabel: 'รอบ 1' },
+  { date: new Date(2027,  2, 12), label: 'สละสิทธิ์ รอบ 1 (ครั้งที่ 1)', tag: 'tag-portfolio', category: 'tcas', tagLabel: 'รอบ 1' },
+
+  { date: new Date(2027,  2, 13), label: 'รับสมัคร Quota (ที่มหาวิทยาลัย)', tag: 'tag-quota', category: 'tcas', tagLabel: 'รอบ 2' },
+  { date: new Date(2027,  3, 20), label: 'ประกาศผลคะแนน A-Level', tag: 'tag-alevel', category: 'exam', tagLabel: 'A-Level' },
+  { date: new Date(2027,  4,  3), label: 'ประกาศผล รอบ 2 Quota', tag: 'tag-quota', category: 'tcas', tagLabel: 'รอบ 2' },
+  { date: new Date(2027,  4,  3), dateEnd: new Date(2027,  4,  4), label: 'ยืนยันสิทธิ์ รอบ 2', tag: 'tag-quota', category: 'tcas', tagLabel: 'รอบ 2' },
+  { date: new Date(2027,  4,  5), label: 'สละสิทธิ์ รอบ 2 Quota & รอบ 1 Portfolio (ครั้งที่ 2)', tag: 'tag-quota', category: 'tcas', tagLabel: 'รอบ 1-2' },
+  { date: new Date(2027,  4, 12), dateEnd: new Date(2027,  4, 13), label: 'รับสมัคร Admission #1 (ที่ระบบ mytcas)', tag: 'tag-admission', category: 'tcas', tagLabel: 'รอบ 3', detail: '12-13 พ.ค. 70 รับคำร้องล่าช้าด้วย' },
+  { date: new Date(2027,  4, 22), label: 'ประกาศผล Admission #1', tag: 'tag-admission', category: 'tcas', tagLabel: 'รอบ 3' },
+  { date: new Date(2027,  4, 22), dateEnd: new Date(2027,  4, 23), label: 'ยืนยันสิทธิ์ Admission #1', tag: 'tag-admission', category: 'tcas', tagLabel: 'รอบ 3' },
+  { date: new Date(2027,  4, 27), label: 'ประกาศผล Admission #2', tag: 'tag-admission', category: 'tcas', tagLabel: 'รอบ 3' },
+  { date: new Date(2027,  4, 28), label: 'สละสิทธิ์ Admission', tag: 'tag-admission', category: 'tcas', tagLabel: 'รอบ 3' },
+  { date: new Date(2027,  4, 29), dateEnd: new Date(2027,  5, 15), label: 'รับสมัคร Direct Admission (ที่มหาวิทยาลัย)', tag: 'tag-direct', category: 'tcas', tagLabel: 'รอบ 4' },
+  { date: new Date(2027,  5,  7), dateEnd: new Date(2027,  5, 11), label: 'Direct Admission #1 ที่ระบบ mytcas', tag: 'tag-direct', category: 'tcas', tagLabel: 'รอบ 4' },
+  { date: new Date(2027,  5,  7), dateEnd: new Date(2027,  5,  8), label: 'ประกาศผล / ยืนยันสิทธิ์ Direct #1', tag: 'tag-direct', category: 'tcas', tagLabel: 'รอบ 4' },
+  { date: new Date(2027,  5, 18), label: 'Direct Admission #2 ที่ระบบ mytcas', tag: 'tag-direct', category: 'tcas', tagLabel: 'รอบ 4' },
+  { date: new Date(2027,  5, 18), dateEnd: new Date(2027,  5, 19), label: 'ประกาศผล / ยืนยันสิทธิ์ Direct #2', tag: 'tag-direct', category: 'tcas', tagLabel: 'รอบ 4' },
+];
+
+// Sort by date
+milestones.sort((a, b) => a.date - b.date);
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function pad(n) { return String(n).padStart(2, '0'); }
+
+const thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function thDate(d) {
+  return `${d.getDate()} ${thMonths[d.getMonth()]} ${d.getFullYear() + 543 - 2500}`;
+}
+
+function isPast(m) {
+  const ref = m.dateEnd || m.date;
+  return ref < new Date();
+}
+
+function isActive(m) {
+  const now = new Date();
+  if (m.dateEnd) return m.date <= now && m.dateEnd >= now;
+  // within same day
+  const end = new Date(m.date); end.setHours(23,59,59);
+  return m.date <= now && end >= now;
+}
+
+function diff(target) {
+  const now = new Date();
+  let delta = Math.max(0, target - now);
+  const days = Math.floor(delta / 86400000); delta -= days * 86400000;
+  const hrs  = Math.floor(delta / 3600000);  delta -= hrs  * 3600000;
+  const min  = Math.floor(delta / 60000);    delta -= min  * 60000;
+  const sec  = Math.floor(delta / 1000);
+  return { days, hrs, min, sec };
+}
+
+// ── RENDER TIMELINE ──────────────────────────────────────────────
+function renderTimeline(containerId, filter) {
+  const el = document.getElementById(containerId);
+  const items = filter ? milestones.filter(m => m.category === filter) : milestones;
+  el.innerHTML = items.map((m, i) => {
+    const past = isPast(m);
+    const active = isActive(m);
+    const dateStr = m.dateEnd
+      ? `${thDate(m.date)} – ${thDate(m.dateEnd)}`
+      : thDate(m.date);
+    const isLast = i === items.length - 1;
+    return `
+      <div class="milestone ${past ? 'past' : ''} ${active ? 'active' : ''}">
+        <div class="milestone-date">
+          <div class="date-main">${thDate(m.date)}</div>
+        </div>
+        <div style="display:flex;align-items:stretch;gap:16px">
+          <div class="milestone-connector">
+            <div class="milestone-dot"></div>
+            ${!isLast ? '<div class="milestone-line"></div>' : ''}
+          </div>
+          <div class="milestone-body" style="${isLast ? 'border-bottom:none' : ''}">
+            <span class="milestone-round ${m.tag}">${m.tagLabel}</span>
+            <div class="milestone-title">${m.label}</div>
+            ${m.detail ? `<div class="milestone-detail">${m.detail}</div>` : ''}
+            ${m.dateEnd ? `<div class="milestone-detail">${dateStr}</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+renderTimeline('timeline-all', null);
+renderTimeline('timeline-exam', 'exam');
+renderTimeline('timeline-tcas', 'tcas');
+
+// ── NEXT EVENT ───────────────────────────────────────────────────
+function getNext() {
+  const now = new Date();
+  return milestones.find(m => {
+    const ref = m.dateEnd || m.date;
+    return ref >= now;
+  });
+}
+
+function updateNext() {
+  const m = getNext();
+  if (!m) {
+    document.getElementById('next-name').textContent = 'TCAS70 เสร็จสิ้นแล้ว 🎉';
+    document.getElementById('next-date').textContent = '';
+    return;
+  }
+  document.getElementById('next-name').textContent = m.label;
+  document.getElementById('next-date').textContent = thDate(m.date);
+  const { days, hrs, min, sec } = diff(m.date);
+  document.getElementById('n-days').textContent = days;
+  document.getElementById('n-hrs').textContent  = pad(hrs);
+  document.getElementById('n-min').textContent  = pad(min);
+  document.getElementById('n-sec').textContent  = pad(sec);
+}
+
+// ── CLOCK ────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    `${now.getFullYear() + 543} ${thMonths[now.getMonth()]} ${now.getDate()}  ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+// ── TABS ─────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── TICK ─────────────────────────────────────────────────────────
+updateNext();
+updateClock();
+setInterval(() => { updateNext(); updateClock(); }, 1000);
+</script>
+</body>
+</html>

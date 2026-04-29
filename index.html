@@ -777,8 +777,9 @@ function updateNext() {
 // ── CLOCK ────────────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
-  document.getElementById('clock').textContent =
-    `${now.getFullYear() + 543} ${thMonths[now.getMonth()]} ${now.getDate()}  ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const dateText = `${now.getDate()} ${thMonths[now.getMonth()]} ${now.getFullYear() + 543}`;
+  const timeText = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} (UTC+7)`;
+  document.getElementById('clock').innerHTML = `${dateText}<br>${timeText}`;
 }
 
 // ── TABS ─────────────────────────────────────────────────────────
